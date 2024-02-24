@@ -1,56 +1,57 @@
 $(function() {
    // 1)
-   $.getJSON(`https://deckofcardsapi.com/api/deck/new/draw/`)
-      .then(data => {
-         let value = data.cards[0].value;
-         let suit = data.cards[0].suit;
+   async function deckCards1() {
+      let data = await $.getJSON(`https://deckofcardsapi.com/api/deck/new/draw/`)
+      let value = data.cards[0].value;
+      let suit = data.cards[0].suit;
       console.log(`${value.toLowerCase()} of ${suit.toLowerCase()}`);
-   });
+   }
 
    // 2)
-   let firstCard = null;
-   $.getJSON(`https://deckofcardsapi.com/api/deck/new/draw/`)
-      .then(data => {
-         firstCard = data.cards[0];
-         let deckId = data.deck_id;
-         return $.getJSON(`https://deckofcardsapi.com/api/deck/${deckId}/draw/`);
-      })
-      .then(data => {
-         let secondCard = data.cards[0];
-         [firstCard, secondCard].forEach(function(card) {
-            console.log(
-               `${card.value.toLowerCase()} of ${card.suit.toLowerCase()}`
-            );
-         });
+   async function deckCards2() {
+      let firstCard = await $.getJSON(`https://deckofcardsapi.com/api/deck/new/draw/`);
+      let deckId = firstCard.deck_id;
+      let secondCard = await $.getJSON(`https://deckofcardsapi.com/api/deck/${deckId}/draw/`);
+      [firstCard, secondCard].forEach(data => {
+         let value = data.cards[0].value;
+         let suit = data.cards[0].suit;
+         console.log(
+            `${card.value.toLowerCase()} of ${card.suit.toLowerCase()}`
+         );
       });
+   }
 
    // 3)
-   let deckId = null;
-   let $btn = $('button');
-   let $cardArea = $('#card-area');
-
-   $.getJSON(`https://deckofcardsapi.com/api/deck/new/shuffle/`)
-      .then(data => {
-         deckId = data.deck_id;
-         $btn.show();
-   });
-
-   $btn.on('click', function() {
-      $.getJSON(`https://deckofcardsapi.com/api/deck/${deckId}/draw/`)
-         .then(data => {
-            let cardSrc = data.cards[0].image;
-            let angle = Math.random() * 90 - 45;
-            let randomX = Math.random() * 40 - 20;
-            let randomY = Math.random() * 40 - 20;
-            $cardArea.append(
+   async function deckCards3() {
+      let $btn = $('#startBtn');
+      let $cardArea = $('#card-area');
+   
+      let deckData = await $.getJSON(`https://deckofcardsapi.com/api/deck/new/shuffle/`);
+   
+      $btn.show().on('click', async function() {
+         let cardData = await $.getJSON(`https://deckofcardsapi.com/api/deck/${deckData.deck_id}/draw/`);
+         let cardSrc = cardData.cards[0].image;
+         let angle = Math.random() * 90 - 45;
+         let randomX = Math.random() * 40 - 20;
+         let randomY = Math.random() * 40 - 20;
+         $cardArea.append(
             $('<img>', {
                src: cardSrc,
                css: {
                   transform: `translate(${randomX}px, ${randomY}px) rotate(${angle}deg)`
                }
             })
-            );
-            if (data.remaining === 0) $btn.remove();
-         });
-   });
+         );
+         if (cardData.remaining === 0) $btn.remove();
+         // if (cardData.remaining === 0){
+         //    $btn.remove();
+         //    let $btn2 = $('#resetBtn');
+         //    while($cardArea.firstChild){
+         //       $cardArea.removeChild($cardArea.firstChild);
+         //   }
+         //    $btn2.show().on('click', deckCards3());
+         // }
+      });
+   }
+   deckCards3();
 });
